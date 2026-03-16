@@ -1,20 +1,26 @@
 const axios = require('axios');
 const querystring = require('querystring');
+const searchProvider = require('./search/v2/index');
 
 async function getHtml(req) {
-    if (req.body.provider === undefined || req.body.terms === undefined || req.body.userid === undefined){
+    if (req.body.provider === undefined || req.body.terms === undefined){
         return "Not enough information provided";
     }
 
     let provider = req.body.provider;
     let terms = req.body.terms;
-    let userid = req.body.userid;
 
-    await sleep(1000); // this is a long, long search!!
+    // Direct call instead of HTTP to prevent SSRF and simplify session handling
+    if (provider === '/search/v2/') {
+        await sleep(1000);
+        // Mocking req object for the search provider
+        return await searchProvider.search({
+            session: req.session,
+            query: { terms: terms }
+        });
+    }
 
-    let theUrl='http://localhost:3000'+provider+'?userid='+userid+'&terms='+terms;
-    let result = await callAPI('GET', theUrl, false);
-    return result;
+    return "Invalid provider specified";
 }
 
 async function callAPI(method, url, data){

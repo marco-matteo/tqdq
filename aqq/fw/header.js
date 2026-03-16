@@ -14,13 +14,13 @@ async function getHtml(req) {
 </head>
 <body>
     <header>
-        <div>This is the insecure m183 test app</div>`;
+        <div>This is the secure m183 test app</div>`;
 
-    let id = 0;
+    let userid = 0;
     let roleid = 0;
-    if(req.cookies.userid !== undefined && req.cookies.userid !== '') {
-        id = req.cookies.userid;
-        let stmt = await db.executeStatement("select users.id userid, roles.id roleid, roles.title rolename from users inner join permissions on users.id = permissions.userid inner join roles on permissions.roleID = roles.id where userid = "+id);
+    if(req.session && req.session.userid) {
+        userid = req.session.userid;
+        let stmt = await db.executeStatement("select users.id userid, roles.id roleid, roles.title rolename from users left join permissions on users.id = permissions.userid left join roles on permissions.roleID = roles.id where users.id = ?", [userid]);
         console.log(stmt);
 
         // load role from db
@@ -38,6 +38,14 @@ async function getHtml(req) {
         }
         content += `
                 <li><a href="/logout">Logout</a></li>
+            </ul>
+        </nav>`;
+    } else {
+        content += `
+        <nav>
+            <ul>
+                <li><a href="/login">Login</a></li>
+                <li><a href="/register">Register</a></li>
             </ul>
         </nav>`;
     }
