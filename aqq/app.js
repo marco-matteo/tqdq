@@ -1,14 +1,17 @@
 const express = require('express');
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
+const csrf = require('csurf');
 const path = require('path');
 const header = require('./fw/header');
 const footer = require('./fw/footer');
 const login = require('./login');
+const register = require('./register');
 const index = require('./index');
 const adminUser = require('./admin/users');
 const editTask = require('./edit');
 const saveTask = require('./savetask');
+const deleteTask = require('./deletetask');
 const search = require('./search');
 const searchProvider = require('./search/v2/index');
 
@@ -17,9 +20,15 @@ const PORT = 3000;
 
 // Middleware für Session-Handling
 app.use(session({
-    secret: 'secret',
-    resave: true,
-    saveUninitialized: true
+    secret: 'GanzGeheimesSecret123!', // Sollte in der Realität aus env kommen
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        httpOnly: true,
+        secure: false, // Auf true setzen, wenn HTTPS verwendet wird
+        sameSite: 'lax',
+        maxAge: 3600000 // 1 Stunde
+    }
 }));
 
 // Middleware für Body-Parser
@@ -28,10 +37,20 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(cookieParser());
 
+// CSRF Protection
+const csrfProtection = csrf({ cookie: true });
+
+app.use(csrfProtection);
+
+app.use((req, res, next) => {
+    res.locals.csrfToken = req.csrfToken();
+    next();
+});
+
 // Routen
 app.get('/', async (req, res) => {
     if (activeUserSession(req)) {
-        let html = await wrapContent(await index.html(req), req)
+        let html = await wrapContent(await index.html(req, res), req)
         res.send(html);
     } else {
         res.redirect('login');
@@ -40,7 +59,7 @@ app.get('/', async (req, res) => {
 
 app.post('/', async (req, res) => {
     if (activeUserSession(req)) {
-        let html = await wrapContent(await index.html(req), req)
+        let html = await wrapContent(await index.html(req, res), req)
         res.send(html);
     } else {
         res.redirect('login');
@@ -49,18 +68,18 @@ app.post('/', async (req, res) => {
 
 // edit task
 app.get('/admin/users', async (req, res) => {
-    if(activeUserSession(req)) {
-        let html = await wrapContent(await adminUser.html, req);
+    if(isAdmin(req)) {
+        let html = await wrapContent(await adminUser.html(), req);
         res.send(html);
     } else {
-        res.redirect('/');
+        res.status(403).send("Forbidden: You do not have administrator privileges.");
     }
 });
 
 // edit task
 app.get('/edit', async (req, res) => {
     if (activeUserSession(req)) {
-        let html = await wrapContent(await editTask.html(req), req);
+        let html = await wrapContent(await editTask.html(req, res), req);
         res.send(html);
     } else {
         res.redirect('/');
@@ -73,12 +92,38 @@ app.get('/login', async (req, res) => {
 
     if(content.user.userid !== 0) {
         // login was successful... set cookies and redirect to /
-        login.startUserSession(res, content.user);
+        login.startUserSession(req, res, content.user);
     } else {
         // login unsuccessful or not made jet... display login form
         let html = await wrapContent(content.html, req);
         res.send(html);
     }
+});
+
+app.post('/login', async (req, res) => {
+    let content = await login.handleLogin(req, res);
+
+    if(content.user.userid !== 0) {
+        // login was successful... set session and redirect to /
+        login.startUserSession(req, res, content.user);
+    } else {
+        // login unsuccessful... display login form
+        let html = await wrapContent(content.html, req);
+        res.send(html);
+    }
+});
+
+// Register
+app.get('/register', async (req, res) => {
+    let content = await register.handleRegister(req, res);
+    let html = await wrapContent(content, req);
+    res.send(html);
+});
+
+app.post('/register', async (req, res) => {
+    let content = await register.handleRegister(req, res);
+    let html = await wrapContent(content, req);
+    res.send(html);
 });
 
 // Logout
@@ -87,6 +132,16 @@ app.get('/logout', (req, res) => {
     res.cookie('username','');
     res.cookie('userid','');
     res.redirect('/login');
+});
+
+// delete task
+app.get('/delete', async (req, res) => {
+    if (activeUserSession(req)) {
+        let html = await wrapContent(await deleteTask.handle(req), req);
+        res.send(html);
+    } else {
+        res.redirect('/');
+    }
 });
 
 // Profilseite anzeigen
@@ -132,8 +187,10 @@ async function wrapContent(content, req) {
 }
 
 function activeUserSession(req) {
-    // check if cookie with user information ist set
-    console.log('in activeUserSession');
-    console.log(req.cookies);
-    return req.cookies !== undefined && req.cookies.username !== undefined && req.cookies.username !== '';
+    // check if session with user information is set
+    return req.session !== undefined && req.session.loggedin === true && req.session.userid !== undefined;
+}
+
+function isAdmin(req) {
+    return activeUserSession(req) && req.session.role === 'Admin';
 }
