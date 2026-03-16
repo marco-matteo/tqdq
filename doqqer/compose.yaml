@@ -1,0 +1,42 @@
+services:
+  web:
+    image: node:latest
+    container_name: m183-lb2-web
+    working_dir: /home/node/app
+    user: node
+    volumes:
+      - ../aqq:/home/node/app
+    command: sh -c "npm install && npm run start"
+    ports:
+      - "3000:3000"
+    environment:
+      - DBSERVER=m183-lb2-db
+      - DBUSER=root
+      - DBPASSWORD=Some.Real.Secr3t
+      - DBNAME=m183_lb2
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  db:
+    build: ./db
+    container_name: m183-lb2-db
+    restart: always
+    environment:
+      - MARIADB_ROOT_PASSWORD=Some.Real.Secr3t
+      - MARIADB_DATABASE=m183_lb2
+    ports:
+      - "3306:3306"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mariadb", "-uroot", "-pSome.Real.Secr3t", "-e", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  app-network:
+    driver: bridge
