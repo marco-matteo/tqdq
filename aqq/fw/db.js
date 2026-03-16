@@ -31,8 +31,8 @@ async function executeStatement(statement, params = []) {
     return results;
 }
 
-module.exports = { 
-    connectDB: connectDB, 
+module.exports = {
+    connectDB: connectDB,
     executeStatement: executeStatement,
     knex: db
 };

@@ -7,12 +7,10 @@ const path = require('path');
 const header = require('./fw/header');
 const footer = require('./fw/footer');
 const login = require('./login');
-const register = require('./register');
 const index = require('./index');
 const adminUser = require('./admin/users');
 const editTask = require('./edit');
 const saveTask = require('./savetask');
-const deleteTask = require('./deletetask');
 const search = require('./search');
 const searchProvider = require('./search/v2/index');
 
@@ -108,7 +106,7 @@ app.get('/login', async (req, res) => {
 app.post('/login', async (req, res) => {
     let content = await login.handleLogin(req, res);
 
-    if(content.user.userId !== 0) {
+    if(content.user.userid !== 0) {
         // login was successful... set session and redirect to /
         login.startUserSession(req, res, content.user);
     } else {
@@ -118,35 +116,12 @@ app.post('/login', async (req, res) => {
     }
 });
 
-// Register
-app.get('/register', async (req, res) => {
-    let content = await register.handleRegister(req, res);
-    let html = await wrapContent(content, req);
-    res.send(html);
-});
-
-app.post('/register', async (req, res) => {
-    let content = await register.handleRegister(req, res);
-    let html = await wrapContent(content, req);
-    res.send(html);
-});
-
 // Logout
 app.get('/logout', (req, res) => {
     req.session.destroy();
     res.cookie('username','');
     res.cookie('userId','');
     res.redirect('/login');
-});
-
-// delete task
-app.get('/delete', async (req, res) => {
-    if (activeUserSession(req)) {
-        let html = await wrapContent(await deleteTask.handle(req), req);
-        res.send(html);
-    } else {
-        res.redirect('/');
-    }
 });
 
 // Profilseite anzeigen
