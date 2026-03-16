@@ -93,7 +93,6 @@ function getHtml(csrfToken) {
             <input id="submit" type="submit" class="btn size-auto" value="Login" />
         </div>
     </form>
-    <p>Don't have an account? <a href="/register">Register here</a></p>
     `;
 }
 
