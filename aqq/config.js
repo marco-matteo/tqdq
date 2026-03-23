@@ -1,8 +1,6 @@
 module.exports = {
     host: process.env.DBSERVER || 'localhost',
-    user: 'root',
-    password: 'Some.Real.Secr3t',
-    database: 'm183_lb2'
+    user: process.env.DBUSER || 'root',
+    password: process.env.DBPASSWORD || 'Some.Real.Secr3t',
+    database: process.env.DBNAME || 'm183_lb2'
 };
-
-//test
