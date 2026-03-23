@@ -6,6 +6,7 @@
 -- Erstellungszeit: 08. Feb 2024 um 18:09
 -- Server-Version: 10.6.15-MariaDB
 -- PHP-Version: 8.2.14
+DROP DATABASE IF EXISTS m183_lb2;
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;

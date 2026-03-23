@@ -5,6 +5,10 @@ async function handleLogin(req, res) {
     let msg = '';
     let user = { 'username': '', 'userId': 0, 'role': '' };
 
+    if (req.query && req.query.registered === '1') {
+        msg = '<div class="success">Registration successful! You can now log in.</div>';
+    }
+
     if(typeof req.body.username !== 'undefined' && typeof req.body.password !== 'undefined') {
         // Get username and password from the form and call the validateLogin
         let result = await validateLogin(req.body.username, req.body.password);
@@ -93,6 +97,8 @@ function getHtml(csrfToken) {
             <input id="submit" type="submit" class="btn size-auto" value="Login" />
         </div>
     </form>
+    <br />
+    <p style="margin: 20px;">Don't have an account? <a href="/register">Register here</a></p>
     `;
 }
 
