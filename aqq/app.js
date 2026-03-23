@@ -10,6 +10,7 @@ const login = require('./login');
 const index = require('./index');
 const adminUser = require('./admin/users');
 const editTask = require('./edit');
+const deleteTask = require("./delete");
 const saveTask = require('./savetask');
 const search = require('./search');
 const searchProvider = require('./search/v2/index');
@@ -88,6 +89,14 @@ app.get('/edit', async (req, res) => {
         res.redirect('/');
     }
 });
+
+app.get("/delete", async (req, res) => {
+    if (activeUserSession(req)) {
+        await deleteTask.deleteTask(req, res);
+    } else {
+        res.redirect("/")
+    }
+})
 
 // Login-Seite anzeigen
 app.get('/login', async (req, res) => {
