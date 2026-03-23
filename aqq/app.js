@@ -1,7 +1,7 @@
 const express = require('express');
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
-const csrf = require('csurf');
+const { csrfSync } = require('csrf-sync');
 const path = require('path');
 const header = require('./fw/header');
 const footer = require('./fw/footer');
@@ -18,32 +18,36 @@ const searchProvider = require('./search/v2/index');
 const app = express();
 const PORT = 3000;
 
-// Middleware für Session-Handling
 app.use(session({
-    secret: 'GanzGeheimesSecret123!', // Sollte in der Realität aus env kommen
+    secret: process.env.SECRET || 'dev-session-secret',
     resave: false,
     saveUninitialized: false,
     cookie: {
         httpOnly: true,
-        secure: false, // Auf true setzen, wenn HTTPS verwendet wird
-        sameSite: 'lax',
+        secure: false,
+        sameSite: 'strict',
         maxAge: 3600000 // 1 Stunde
     }
 }));
 
-// Middleware für Body-Parser
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(cookieParser());
 
 // CSRF Protection
-const csrfProtection = csrf({ cookie: true });
+const {
+    invalidCsrfTokenError,
+    generateToken,
+    csrfSynchronisedProtection,
+} = csrfSync({
+    getTokenFromRequest: (req) => req.body._csrf,
+});
 
-app.use(csrfProtection);
+app.use(csrfSynchronisedProtection);
 
 app.use((req, res, next) => {
-    res.locals.csrfToken = req.csrfToken();
+    res.locals.csrfToken = generateToken(req);
     next();
 });
 
@@ -90,7 +94,7 @@ app.get('/edit', async (req, res) => {
 app.get('/login', async (req, res) => {
     let content = await login.handleLogin(req, res);
 
-    if(content.user.userid !== 0) {
+    if(content.user.userId !== 0) {
         // login was successful... set cookies and redirect to /
         login.startUserSession(req, res, content.user);
     } else {
@@ -103,7 +107,7 @@ app.get('/login', async (req, res) => {
 app.post('/login', async (req, res) => {
     let content = await login.handleLogin(req, res);
 
-    if(content.user.userid !== 0) {
+    if(content.user.userId !== 0) {
         // login was successful... set session and redirect to /
         login.startUserSession(req, res, content.user);
     } else {
@@ -130,7 +134,7 @@ app.post('/register', async (req, res) => {
 app.get('/logout', (req, res) => {
     req.session.destroy();
     res.cookie('username','');
-    res.cookie('userid','');
+    res.cookie('userId','');
     res.redirect('/login');
 });
 
@@ -176,6 +180,15 @@ app.get('/search/v2/', async (req, res) => {
 });
 
 
+// Fehlerbehandlung
+app.use((err, req, res, next) => {
+    if (err === invalidCsrfTokenError) {
+        res.status(403).send("CSRF token validation failed.");
+    } else {
+        next(err);
+    }
+});
+
 // Server starten
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
@@ -188,7 +201,7 @@ async function wrapContent(content, req) {
 
 function activeUserSession(req) {
     // check if session with user information is set
-    return req.session !== undefined && req.session.loggedin === true && req.session.userid !== undefined;
+    return req.session !== undefined && req.session.loggedin === true && req.session.userId !== undefined;
 }
 
 function isAdmin(req) {

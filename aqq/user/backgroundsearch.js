@@ -31,9 +31,9 @@ function getHtml(req, res) {
                 title: 'Please enter search terms.',
             },
             submitHandler: function (form) {
-                provider = $("#searchurl").val();
-                terms = $("#terms").val();
-                _csrf = $("input[name='_csrf']").val();
+                const provider = $("#searchurl").val();
+                const terms = $("#terms").val();
+                const _csrf = $("input[name='_csrf']").val();
                 $("#msg").show();
                 $("#result").html("");
                 $.post("search", { provider: provider, terms: terms, _csrf: _csrf }, function(data){

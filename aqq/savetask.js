@@ -3,12 +3,15 @@ const db = require('./fw/db');
 async function getHtml(req) {
     let html = '';
     let taskId = '';
-    let userid = req.session.userid;
+    let userId = req.session.userId;
 
     // see if the id exists in the database and belongs to the user
     if (req.body.id !== undefined && req.body.id.length !== 0) {
         taskId = req.body.id;
-        let stmt = await db.executeStatement('select ID from tasks where ID = ? and UserID = ?', [taskId, userid]);
+        let stmt = await db.knex('tasks')
+            .where('ID', taskId)
+            .where('userID', userId)
+            .select('ID');
         if (stmt.length === 0) {
             return "<span class='info info-error'>Task not found or permission denied.</span>";
         }
@@ -19,9 +22,19 @@ async function getHtml(req) {
         let title = req.body.title;
 
         if (taskId === ''){
-            await db.executeStatement("insert into tasks (title, state, userID) values (?, ?, ?)", [title, state, userid]);
+            await db.knex('tasks').insert({
+                title: title,
+                state: state,
+                userID: userId
+            });
         } else {
-            await db.executeStatement("update tasks set title = ?, state = ? where ID = ? and UserID = ?", [title, state, taskId, userid]);
+            await db.knex('tasks')
+                .where('ID', taskId)
+                .where('userID', userId)
+                .update({
+                    title: title,
+                    state: state
+                });
         }
 
         html += "<span class='info info-success'>Update successful</span>";

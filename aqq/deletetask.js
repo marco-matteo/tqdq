@@ -6,12 +6,15 @@ async function handle(req) {
     }
 
     const taskId = req.query.id;
-    const userId = req.session.userid;
+    const userId = req.session.userId;
 
     // Check ownership before deleting (IDOR fix)
-    const stmt = await db.executeStatement('delete from tasks where ID = ? and UserID = ?', [taskId, userId]);
+    const affectedRows = await db.knex('tasks')
+        .where('ID', taskId)
+        .where('userID', userId)
+        .del();
 
-    if (stmt.affectedRows > 0) {
+    if (affectedRows > 0) {
         return "<span class='info info-success'>Task deleted successfully</span><br><a href='/' class='btn'>Back to list</a>";
     } else {
         return "<span class='info info-error'>Task not found or unauthorized</span><br><a href='/' class='btn'>Back to list</a>";
