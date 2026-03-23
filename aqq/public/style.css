@@ -148,3 +148,17 @@ hr{
 #msg{
     font-weight: bold;
 }
+
+div.error{
+    background-color: #F8A1A4;
+    padding: 10px 15px;
+    margin: 10px 0;
+    border-left: 4px solid #d9534f;
+}
+
+div.success{
+    background-color: #98E0AD;
+    padding: 10px 15px;
+    margin: 10px 0;
+    border-left: 4px solid #5cb85c;
+}

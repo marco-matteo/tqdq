@@ -7,6 +7,7 @@ const path = require('path');
 const header = require('./fw/header');
 const footer = require('./fw/footer');
 const login = require('./login');
+const register = require('./register');
 const index = require('./index');
 const adminUser = require('./admin/users');
 const editTask = require('./edit');
@@ -87,6 +88,31 @@ app.get('/edit', async (req, res) => {
         res.send(html);
     } else {
         res.redirect('/');
+    }
+});
+
+// Registrierung
+app.get('/register', async (req, res) => {
+    if (activeUserSession(req)) {
+        res.redirect('/');
+        return;
+    }
+    let content = await register.handleRegister(req, res);
+    if (!content.redirect) {
+        let html = await wrapContent(content.html, req);
+        res.send(html);
+    }
+});
+
+app.post('/register', async (req, res) => {
+    if (activeUserSession(req)) {
+        res.redirect('/');
+        return;
+    }
+    let content = await register.handleRegister(req, res);
+    if (!content.redirect) {
+        let html = await wrapContent(content.html, req);
+        res.send(html);
     }
 });
 
