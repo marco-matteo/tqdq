@@ -2,10 +2,13 @@ const db = require('../fw/db');
 const security = require('../fw/security');
 
 async function getHtml() {
-    let conn = await db.connectDB();
     let html = '';
     // Do not select passwords here!
-    let [result,fields] = await conn.execute("SELECT users.ID, users.username, roles.title FROM users inner join permissions on users.ID = permissions.userID inner join roles on permissions.roleID = roles.ID order by username");
+    let result = await db.knex('users')
+        .innerJoin('permissions', 'users.ID', 'permissions.userID')
+        .innerJoin('roles', 'permissions.roleID', 'roles.ID')
+        .select('users.ID', 'users.username', 'roles.title')
+        .orderBy('username');
 
     html += `
     <h2>User List</h2>

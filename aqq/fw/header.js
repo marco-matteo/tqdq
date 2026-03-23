@@ -16,23 +16,27 @@ async function getHtml(req) {
     <header>
         <div>This is the secure m183 test app</div>`;
 
-    let userid = 0;
-    let roleid = 0;
-    if(req.session && req.session.userid) {
-        userid = req.session.userid;
-        let stmt = await db.executeStatement("select users.id userid, roles.id roleid, roles.title rolename from users left join permissions on users.id = permissions.userid left join roles on permissions.roleID = roles.id where users.id = ?", [userid]);
+    let userId = 0;
+    let roleId = 0;
+    if(req.session && req.session.userId) {
+        userId = req.session.userId;
+        let stmt = await db.knex('users')
+            .leftJoin('permissions', 'users.ID', 'permissions.userID')
+            .leftJoin('roles', 'permissions.roleID', 'roles.ID')
+            .where('users.ID', userId)
+            .select('users.ID as userId', 'roles.ID as roleId', 'roles.title as roleName');
         console.log(stmt);
 
         // load role from db
         if(stmt.length > 0) {
-            roleid = stmt[0].roleid;
+            roleId = stmt[0].roleId;
         }
 
         content += `
         <nav>
             <ul>
                 <li><a href="/">Tasks</a></li>`;
-        if(roleid === 1) {
+        if(roleId === 1) {
             content += `
                 <li><a href="/admin/users">User List</a></li>`;
         }

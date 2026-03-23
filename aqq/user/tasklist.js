@@ -14,8 +14,9 @@ async function getHtml(req) {
             </tr>
     `;
 
-    let conn = await db.connectDB();
-    let [result, fields] = await conn.execute('select ID, title, state from tasks where UserID = ?', [req.session.userid]);
+    let result = await db.knex('tasks')
+        .where('userID', req.session.userId)
+        .select('ID', 'title', 'state');
     console.log(result);
     result.forEach(function(row) {
         html += `

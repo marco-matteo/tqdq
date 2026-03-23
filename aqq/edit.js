@@ -14,8 +14,10 @@ async function getHtml(req, res) {
         console.log(req.query);
         console.log(req.query.id);
         taskId = req.query.id;
-        let conn = await db.connectDB();
-        let [result, fields] = await conn.execute('select ID, title, state from tasks where ID = ? and UserID = ?', [taskId, req.session.userid]);
+        let result = await db.knex('tasks')
+            .where('ID', taskId)
+            .where('userID', req.session.userId)
+            .select('ID', 'title', 'state');
         if(result.length > 0) {
             title = result[0].title;
             state = result[0].state;

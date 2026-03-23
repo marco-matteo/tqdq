@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 
 async function handleLogin(req, res) {
     let msg = '';
-    let user = { 'username': '', 'userid': 0, 'role': '' };
+    let user = { 'username': '', 'userId': 0, 'role': '' };
 
     if(typeof req.body.username !== 'undefined' && typeof req.body.password !== 'undefined') {
         // Get username and password from the form and call the validateLogin
@@ -12,7 +12,7 @@ async function handleLogin(req, res) {
         if(result.valid) {
             // Login is correct. Store user information to be returned.
             user.username = req.body.username;
-            user.userid = result.userId;
+            user.userId = result.userId;
             user.role = result.role;
             msg = result.msg;
         } else {
@@ -24,10 +24,10 @@ async function handleLogin(req, res) {
 }
 
 function startUserSession(req, res, user) {
-    console.log('login valid... start user session now for userid '+user.userid);
+    console.log('login valid... start user session now for userId '+user.userId);
     req.session.loggedin = true;
     req.session.username = user.username;
-    req.session.userid = user.userid;
+    req.session.userId = user.userId;
     req.session.role = user.role;
     res.redirect('/');
 }
@@ -35,34 +35,22 @@ function startUserSession(req, res, user) {
 async function validateLogin (username, password) {
     let result = { valid: false, msg: '', userId: 0, role: '' };
 
-    // Connect to the database
-    const dbConnection = await db.connectDB();
-
-    const sql = `
-        SELECT users.id, users.username, users.password, roles.title as role 
-        FROM users 
-        LEFT JOIN permissions ON users.id = permissions.userID 
-        LEFT JOIN roles ON permissions.roleID = roles.id 
-        WHERE username = ?`;
     try {
-        const [results, fields] = await dbConnection.execute(sql, [username]);
+        const results = await db.knex('users')
+            .leftJoin('permissions', 'users.ID', 'permissions.userID')
+            .leftJoin('roles', 'permissions.roleID', 'roles.ID')
+            .where('users.username', username)
+            .select('users.ID', 'users.username', 'users.password', 'roles.title as role');
 
         if(results.length > 0) {
             // Bind the result variables
-            let db_id = results[0].id;
+            let db_id = results[0].ID;
             let db_username = results[0].username;
             let db_password = results[0].password;
             let db_role = results[0].role;
 
             // Verify the password
-            // In a real application, passwords should be hashed. 
-            // For now, we support both plain text (for existing users) and bcrypt (for new/updated users).
-            let passwordMatch = false;
-            if (db_password.startsWith('$2a$') || db_password.startsWith('$2b$')) {
-                passwordMatch = await bcrypt.compare(password, db_password);
-            } else {
-                passwordMatch = (password === db_password);
-            }
+            const passwordMatch = await bcrypt.compare(password, db_password);
 
             if (passwordMatch) {
                 result.userId = db_id;
