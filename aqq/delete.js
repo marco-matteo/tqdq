@@ -4,7 +4,10 @@ async function deleteTask(req, res) {
     if(req.query.id !== undefined) {
         let taskId = req.query.id;
 
-        await db.executeStatement('delete from tasks where ID = ? and UserID = ?', [taskId, req.session.userid]);
+        await db.knex('tasks')
+            .where('ID', taskID)
+			.where('UserId', req.session.userid)
+			.delete();
         
         res.redirect('/');
     } else {
