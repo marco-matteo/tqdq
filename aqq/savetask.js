@@ -20,11 +20,14 @@ async function getHtml(req) {
     if (req.body.title !== undefined && req.body.state !== undefined){
         let state = req.body.state;
         let title = req.body.title;
+        let validPriorities = ['low', 'medium', 'high'];
+        let priority = validPriorities.includes(req.body.priority) ? req.body.priority : 'medium';
 
         if (taskId === ''){
             await db.knex('tasks').insert({
                 title: title,
                 state: state,
+                priority: priority,
                 userID: userId
             });
         } else {
@@ -33,7 +36,8 @@ async function getHtml(req) {
                 .where('userID', userId)
                 .update({
                     title: title,
-                    state: state
+                    state: state,
+                    priority: priority
                 });
         }
 

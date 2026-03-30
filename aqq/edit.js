@@ -4,9 +4,11 @@ const security = require('./fw/security');
 async function getHtml(req, res) {
     let title = '';
     let state = '';
+    let priority = 'medium';
     let taskId = '';
     let html = '';
     let options = ["Open", "In Progress", "Done"];
+    let priorities = ["Low", "Medium", "High"];
     let csrfToken = res.locals.csrfToken;
 
     if(req.query.id !== undefined) {
@@ -17,10 +19,11 @@ async function getHtml(req, res) {
         let result = await db.knex('tasks')
             .where('ID', taskId)
             .where('userID', req.session.userId)
-            .select('ID', 'title', 'state');
+            .select('ID', 'title', 'state', 'priority');
         if(result.length > 0) {
             title = result[0].title;
             state = result[0].state;
+            priority = result[0].priority || 'medium';
         } else {
             // Task not found or not belonging to the user
             return "Task not found or you don't have permission to edit it.";
@@ -46,6 +49,18 @@ async function getHtml(req, res) {
     for(let i = 0; i < options.length; i++) {
         let selected = state === options[i].toLowerCase() ? 'selected' : '';
         html += `<option value='`+security.escapeHTML(options[i].toLowerCase())+`' `+selected+`>`+security.escapeHTML(options[i])+`</option>`;
+    }
+
+    html += `
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="priority">Priority</label>
+            <select name="priority" id="priority" class="size-auto">`;
+
+    for(let i = 0; i < priorities.length; i++) {
+        let selected = priority === priorities[i].toLowerCase() ? 'selected' : '';
+        html += `<option value='`+security.escapeHTML(priorities[i].toLowerCase())+`' `+selected+`>`+security.escapeHTML(priorities[i])+`</option>`;
     }
 
     html += `

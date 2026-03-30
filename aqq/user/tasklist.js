@@ -10,13 +10,14 @@ async function getHtml(req) {
                 <th>ID</th>
                 <th>Description</th>
                 <th>State</th>
+                <th>Priority</th>
                 <th></th>
             </tr>
     `;
 
     let result = await db.knex('tasks')
         .where('userID', req.session.userId)
-        .select('ID', 'title', 'state');
+        .select('ID', 'title', 'state', 'priority');
     console.log(result);
     result.forEach(function(row) {
         html += `
@@ -24,6 +25,7 @@ async function getHtml(req) {
                 <td>`+row.ID+`</td>
                 <td class="wide">`+security.escapeHTML(row.title)+`</td>
                 <td>`+security.escapeHTML(ucfirst(row.state))+`</td>
+                <td>`+security.escapeHTML(ucfirst(row.priority || 'medium'))+`</td>
                 <td>
                     <a href="edit?id=`+row.ID+`">edit</a> | <a href="delete?id=`+row.ID+`">delete</a>
                 </td>
