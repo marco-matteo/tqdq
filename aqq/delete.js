@@ -5,8 +5,8 @@ async function deleteTask(req, res) {
         let taskId = req.query.id;
 
         await db.knex('tasks')
-            .where('ID', taskID)
-			.where('UserId', req.session.userid)
+            .where('ID', taskId)
+			.where('UserId', req.session.userId)
 			.delete();
         
         res.redirect('/');

@@ -85,11 +85,11 @@ function getHtml(csrfToken) {
         </div>
         <div class="form-group">
             <label for="password">Password</label>
-            <input type="password" class="form-control size-medium" name="password" id="password" minlength="8" required>
+            <input type="password" class="form-control size-medium" name="password" id="password" minlength="12" required>
         </div>
         <div class="form-group">
             <label for="password_confirm">Confirm Password</label>
-            <input type="password" class="form-control size-medium" name="password_confirm" id="password_confirm" minlength="8" required>
+            <input type="password" class="form-control size-medium" name="password_confirm" id="password_confirm" minlength="12" required>
         </div>
         <div class="form-group">
             <label for="submit"></label>

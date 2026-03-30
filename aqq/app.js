@@ -141,7 +141,7 @@ app.get('/login', async (req, res) => {
 app.post('/login', async (req, res) => {
     let content = await login.handleLogin(req, res);
 
-    if(content.user.userid !== 0) {
+    if(content.user.userId !== 0) {
         // login was successful... set session and redirect to /
         login.startUserSession(req, res, content.user);
     } else {
@@ -180,14 +180,22 @@ app.post('/savetask', async (req, res) => {
 
 // search
 app.post('/search', async (req, res) => {
-    let html = await search.html(req);
-    res.send(html);
+    if (activeUserSession(req)) {
+        let html = await search.html(req);
+        res.send(html);
+    } else {
+        res.redirect('/');
+    }
 });
 
 // search provider
 app.get('/search/v2/', async (req, res) => {
-    let result = await searchProvider.search(req);
-    res.send(result);
+    if (activeUserSession(req)) {
+        let result = await searchProvider.search(req);
+        res.send(result);
+    } else {
+        res.redirect('/');
+    }
 });
 
 
