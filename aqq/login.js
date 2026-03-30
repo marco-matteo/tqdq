@@ -36,6 +36,9 @@ function startUserSession(req, res, user) {
     res.redirect('/');
 }
 
+const MAX_FAILED_ATTEMPTS = 5;
+const LOCKOUT_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
+
 async function validateLogin (username, password) {
     let result = { valid: false, msg: '', userId: 0, role: '' };
 
@@ -44,37 +47,56 @@ async function validateLogin (username, password) {
             .leftJoin('permissions', 'users.ID', 'permissions.userID')
             .leftJoin('roles', 'permissions.roleID', 'roles.ID')
             .where('users.username', username)
-            .select('users.ID', 'users.username', 'users.password', 'roles.title as role');
+            .select('users.ID', 'users.username', 'users.password', 'users.failed_attempts', 'users.locked_until', 'roles.title as role');
 
         if(results.length > 0) {
-            // Bind the result variables
             let db_id = results[0].ID;
-            let db_username = results[0].username;
             let db_password = results[0].password;
             let db_role = results[0].role;
+            let db_failed_attempts = results[0].failed_attempts || 0;
+            let db_locked_until = results[0].locked_until;
+
+            // Check if account is locked
+            if (db_locked_until && new Date(db_locked_until) > new Date()) {
+                const unlockTime = new Date(db_locked_until).toLocaleString();
+                result.msg = `<div class="error">Account is locked due to too many failed login attempts. Try again after ${unlockTime}.</div>`;
+                console.log('Login blocked for locked account: %s', username);
+                return result;
+            }
 
             // Verify the password
             const passwordMatch = await bcrypt.compare(password, db_password);
 
             if (passwordMatch) {
+                // Reset failed attempts on successful login
+                await db.knex('users').where('ID', db_id).update({ failed_attempts: 0, locked_until: null });
                 result.userId = db_id;
                 result.role = db_role;
                 result.valid = true;
                 result.msg = 'login correct';
             } else {
-                // Password is incorrect
-                result.msg = 'Incorrect password';
+                // Increment failed attempts
+                const newFailedAttempts = db_failed_attempts + 1;
+                if (newFailedAttempts >= MAX_FAILED_ATTEMPTS) {
+                    const lockUntil = new Date(Date.now() + LOCKOUT_DURATION_MS);
+                    await db.knex('users').where('ID', db_id).update({ failed_attempts: newFailedAttempts, locked_until: lockUntil });
+                    result.msg = '<div class="error">Too many failed login attempts. Your account has been locked for 24 hours.</div>';
+                    console.log('Account locked for user %s after %d failed attempts', username, newFailedAttempts);
+                } else {
+                    await db.knex('users').where('ID', db_id).update({ failed_attempts: newFailedAttempts });
+                    result.msg = '<div class="error">Invalid username or password.</div>';
+                }
             }
         } else {
             // Username does not exist
-            result.msg = 'Username does not exist';
+            result.msg = '<div class="error">Invalid username or password.</div>';
         }
 
         console.log('Login query returned %d row(s) for username %s', results.length, username);
     } catch (err) {
         console.log(err);
     }
-    
+
     return result;
 }
 
