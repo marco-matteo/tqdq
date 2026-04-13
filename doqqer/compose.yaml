@@ -7,8 +7,7 @@ services:
       - BACKEND=http://m183-lb2-web:3000
       - PORT=8080
       - PARANOIA=2
-      - ANOMALY_INBOUND=5
-      - MODSEC_RULE_ENGINE=DetectionOnly  # TODO: Set to "On" when ready
+      - On
     depends_on:
       web:
         condition: service_healthy
