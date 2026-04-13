@@ -1,4 +1,18 @@
 services:
+  waf: 
+    image: owasp/modsecurity-crs:nginx
+    ports:
+      - "80:80"
+    environment:
+      - BACKEND=http://m183-lb2-web:3000
+      - PORT=80
+      - PARANOIA=1
+      - ANOMALY_INBOUND=5
+      - MODSEC_RULE_ENGINE=DetectionOnly  # TODO: Set to "On" when ready
+    depends_on:
+      - web
+    networks:
+      - app-network
   web:
     image: node:latest
     container_name: m183-lb2-web
@@ -7,8 +21,6 @@ services:
     volumes:
       - ../aqq:/home/node/app
     command: sh -c "npm install && npm run start"
-    ports:
-      - "3000:3000"
     environment:
       - DBSERVER=m183-lb2-db
       - DBUSER=root
