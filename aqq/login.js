@@ -1,6 +1,8 @@
 const db = require('./fw/db');
 const bcrypt = require('bcryptjs');
 
+const FAILED_AUTH = '<div class="error">Invalid username or password.</div>';
+
 async function handleLogin(req, res) {
     let msg = '';
     let user = { 'username': '', 'userId': 0, 'role': '' };
@@ -84,12 +86,12 @@ async function validateLogin (username, password) {
                     console.log('Account locked for user %s after %d failed attempts', username, newFailedAttempts);
                 } else {
                     await db.knex('users').where('ID', db_id).update({ failed_attempts: newFailedAttempts });
-                    result.msg = '<div class="error">Invalid username or password.</div>';
+                    result.msg = FAILED_AUTH;
                 }
             }
         } else {
             // Username does not exist
-            result.msg = '<div class="error">Invalid username or password.</div>';
+            result.msg = FAILED_AUTH;
         }
 
         console.log('Login query returned %d row(s) for username %s', results.length, username);

@@ -52,51 +52,47 @@ app.use((req, res, next) => {
     next();
 });
 
-// Routen
-app.get('/', async (req, res) => {
-    if (activeUserSession(req)) {
-        let html = await wrapContent(await index.html(req, res), req)
-        res.send(html);
+function requireAuth(req, res, next) {
+    if (req.session?.loggedin === true && req.session?.userId !== undefined) {
+        next();
     } else {
-        res.redirect('login');
+        res.redirect('/login');
     }
-});
+}
 
-app.post('/', async (req, res) => {
-    if (activeUserSession(req)) {
-        let html = await wrapContent(await index.html(req, res), req)
-        res.send(html);
-    } else {
-        res.redirect('login');
-    }
-})
-
-// edit task
-app.get('/admin/users', async (req, res) => {
-    if(isAdmin(req)) {
-        let html = await wrapContent(await adminUser.html(), req);
-        res.send(html);
+function requireAdmin(req, res, next) {
+    if (req.session?.loggedin === true && req.session?.role === 'Admin') {
+        next();
     } else {
         res.status(403).send("Forbidden: You do not have administrator privileges.");
     }
+}
+
+// Routen
+app.get('/', requireAuth, async (req, res) => {
+    let html = await wrapContent(await index.html(req, res), req)
+    res.send(html);
+});
+
+app.post('/', requireAuth, async (req, res) => {
+    let html = await wrapContent(await index.html(req, res), req)
+    res.send(html);
+})
+
+// edit task
+app.get('/admin/users', requireAdmin, async (req, res) => {
+    let html = await wrapContent(await adminUser.html(), req);
+    res.send(html);
 });
 
 // edit task
-app.get('/edit', async (req, res) => {
-    if (activeUserSession(req)) {
-        let html = await wrapContent(await editTask.html(req, res), req);
-        res.send(html);
-    } else {
-        res.redirect('/');
-    }
+app.get('/edit', requireAuth, async (req, res) => {
+    let html = await wrapContent(await editTask.html(req, res), req);
+    res.send(html);
 });
 
 // Registrierung
-app.get('/register', async (req, res) => {
-    if (activeUserSession(req)) {
-        res.redirect('/');
-        return;
-    }
+app.get('/register', requireAuth, async (req, res) => {
     let content = await register.handleRegister(req, res);
     if (!content.redirect) {
         let html = await wrapContent(content.html, req);
@@ -104,11 +100,7 @@ app.get('/register', async (req, res) => {
     }
 });
 
-app.post('/register', async (req, res) => {
-    if (activeUserSession(req)) {
-        res.redirect('/');
-        return;
-    }
+app.post('/register', requireAuth, async (req, res) => {
     let content = await register.handleRegister(req, res);
     if (!content.redirect) {
         let html = await wrapContent(content.html, req);
@@ -116,12 +108,8 @@ app.post('/register', async (req, res) => {
     }
 });
 
-app.get("/delete", async (req, res) => {
-    if (activeUserSession(req)) {
-        await deleteTask.deleteTask(req, res);
-    } else {
-        res.redirect("/")
-    }
+app.get("/delete", requireAuth, async (req, res) => {
+    await deleteTask.deleteTask(req, res);
 })
 
 // Login-Seite anzeigen
@@ -169,33 +157,21 @@ app.get('/profile', (req, res) => {
 });
 
 // save task
-app.post('/savetask', async (req, res) => {
-    if (activeUserSession(req)) {
-        let html = await wrapContent(await saveTask.html(req), req);
-        res.send(html);
-    } else {
-        res.redirect('/');
-    }
+app.post('/savetask', requireAuth, async (req, res) => {
+    let html = await wrapContent(await saveTask.html(req), req);
+    res.send(html);
 });
 
 // search
-app.post('/search', async (req, res) => {
-    if (activeUserSession(req)) {
-        let html = await search.html(req);
-        res.send(html);
-    } else {
-        res.redirect('/');
-    }
+app.post('/search', requireAuth, async (req, res) => {
+    let html = await search.html(req);
+    res.send(html);
 });
 
 // search provider
-app.get('/search/v2/', async (req, res) => {
-    if (activeUserSession(req)) {
-        let result = await searchProvider.search(req);
-        res.send(result);
-    } else {
-        res.redirect('/');
-    }
+app.get('/search/v2/', requireAuth, async (req, res) => {
+    let result = await searchProvider.search(req);
+    res.send(result);
 });
 
 
@@ -216,13 +192,4 @@ app.listen(PORT, () => {
 async function wrapContent(content, req) {
     let headerHtml = await header(req);
     return headerHtml+content+footer;
-}
-
-function activeUserSession(req) {
-    // check if session with user information is set
-    return req.session !== undefined && req.session.loggedin === true && req.session.userId !== undefined;
-}
-
-function isAdmin(req) {
-    return activeUserSession(req) && req.session.role === 'Admin';
 }
