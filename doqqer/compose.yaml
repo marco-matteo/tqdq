@@ -2,15 +2,16 @@ services:
   waf: 
     image: owasp/modsecurity-crs:nginx
     ports:
-      - "80:80"
+      - "8080:8080"
     environment:
       - BACKEND=http://m183-lb2-web:3000
-      - PORT=80
-      - PARANOIA=1
+      - PORT=8080
+      - PARANOIA=2
       - ANOMALY_INBOUND=5
       - MODSEC_RULE_ENGINE=DetectionOnly  # TODO: Set to "On" when ready
     depends_on:
-      - web
+      web:
+        condition: service_healthy
     networks:
       - app-network
   web:
@@ -31,6 +32,11 @@ services:
         condition: service_healthy
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD", "curl", "localhost:3000"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   db:
     build: ./db

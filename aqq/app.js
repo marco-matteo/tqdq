@@ -91,6 +91,10 @@ app.get('/edit', requireAuth, async (req, res) => {
     res.send(html);
 });
 
+app.get('/health', (_, res) => {
+	res.send("healthy");
+});
+
 // Registrierung
 app.get('/register', requireAuth, async (req, res) => {
     let content = await register.handleRegister(req, res);
