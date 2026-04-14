@@ -44,8 +44,6 @@ services:
     environment:
       - MARIADB_ROOT_PASSWORD=Some.Real.Secr3t
       - MARIADB_DATABASE=m183_lb2
-    ports:
-      - "3306:3306"
     networks:
       - app-network
     healthcheck:
