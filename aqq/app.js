@@ -92,7 +92,7 @@ app.get('/edit', requireAuth, async (req, res) => {
 });
 
 app.get('/health', (_, res) => {
-	res.send("healthy");
+    res.send("healthy");
 });
 
 // Registrierung
