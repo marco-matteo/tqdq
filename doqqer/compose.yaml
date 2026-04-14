@@ -32,7 +32,7 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "curl", "localhost:3000"]
+      test: ["CMD", "curl", "--fail", "--silent", "--show-error", "http://localhost:3000/health"]
       interval: 10s
       timeout: 5s
       retries: 5
