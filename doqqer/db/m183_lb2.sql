@@ -70,7 +70,9 @@ CREATE TABLE `tasks` (
 CREATE TABLE `users` (
   `ID` bigint(20) NOT NULL,
   `username` varchar(255) NOT NULL,
-  `password` varchar(255) NOT NULL
+  `password` varchar(255) NOT NULL,
+  `failed_attempts` TINYINT UNSIGNED NOT NULL DEFAULT 0,
+  `locked_until` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_general_ci;
 
 --
