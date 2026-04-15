@@ -1,4 +1,18 @@
 services:
+  waf: 
+    image: owasp/modsecurity-crs:nginx
+    ports:
+      - "8080:8080"
+    environment:
+      - BACKEND=http://m183-lb2-web:3000
+      - PORT=8080
+      - PARANOIA=2
+      - MODSEC_RULE_ENGINE=On
+    depends_on:
+      web:
+        condition: service_healthy
+    networks:
+      - app-network
   web:
     image: node:latest
     container_name: m183-lb2-web
@@ -7,8 +21,6 @@ services:
     volumes:
       - ../aqq:/home/node/app
     command: sh -c "npm install && npm run start"
-    ports:
-      - "3000:3000"
     environment:
       - DBSERVER=m183-lb2-db
       - DBUSER=root
@@ -19,6 +31,11 @@ services:
         condition: service_healthy
     networks:
       - app-network
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "--show-error", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   db:
     build: ./db
@@ -27,8 +44,6 @@ services:
     environment:
       - MARIADB_ROOT_PASSWORD=Some.Real.Secr3t
       - MARIADB_DATABASE=m183_lb2
-    ports:
-      - "3306:3306"
     networks:
       - app-network
     healthcheck:
