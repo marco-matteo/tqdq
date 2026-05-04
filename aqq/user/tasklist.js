@@ -3,7 +3,7 @@ const security = require('../fw/security');
 
 const VALID_STATES = ['open', 'in progress', 'done'];
 const VALID_PRIORITIES = ['low', 'medium', 'high'];
-const VALID_SORT_COLS = ['ID', 'state', 'priority'];
+const VALID_SORT_COLS = ['ID', 'state', 'priority', 'deadline'];
 const VALID_ORDERS = ['asc', 'desc'];
 
 async function getHtml(req) {
@@ -14,7 +14,7 @@ async function getHtml(req) {
 
     let query = db.knex('tasks')
         .where('userID', req.session.userId)
-        .select('ID', 'title', 'state', 'priority');
+        .select('ID', 'title', 'state', 'priority', 'deadline');
 
     if (filterState)    query = query.where('state', filterState);
     if (filterPriority) query = query.where('priority', filterPriority);
@@ -41,6 +41,7 @@ async function getHtml(req) {
         { value: 'ID',       label: 'ID' },
         { value: 'state',    label: 'State' },
         { value: 'priority', label: 'Priority' },
+        { value: 'deadline', label: 'Deadline' },
     ];
 
     function select(name, options, current) {
@@ -74,20 +75,35 @@ async function getHtml(req) {
                 <th>Description</th>
                 <th>State</th>
                 <th>Priority</th>
+                <th>Deadline</th>
                 <th></th>
             </tr>
     `;
 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     if (result.length === 0) {
-        html += `<tr><td colspan="5">No tasks found.</td></tr>`;
+        html += `<tr><td colspan="6">No tasks found.</td></tr>`;
     } else {
         result.forEach(function(row) {
+            let deadlineDisplay = '';
+            let rowClass = '';
+            if (row.deadline) {
+                const dl = new Date(row.deadline);
+                dl.setHours(0, 0, 0, 0);
+                deadlineDisplay = dl.toISOString().split('T')[0];
+                if (row.state !== 'done' && dl < today) {
+                    rowClass = ' class="overdue"';
+                }
+            }
             html += `
-            <tr>
+            <tr${rowClass}>
                 <td>${row.ID}</td>
                 <td class="wide">${security.escapeHTML(row.title)}</td>
                 <td>${security.escapeHTML(ucfirst(row.state))}</td>
                 <td>${security.escapeHTML(ucfirst(row.priority || 'medium'))}</td>
+                <td>${security.escapeHTML(deadlineDisplay)}</td>
                 <td>
                     <a href="edit?id=${row.ID}">edit</a> | <a href="delete?id=${row.ID}">delete</a>
                 </td>

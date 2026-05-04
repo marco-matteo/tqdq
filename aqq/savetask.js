@@ -22,12 +22,15 @@ async function getHtml(req) {
         let title = req.body.title;
         let validPriorities = ['low', 'medium', 'high'];
         let priority = validPriorities.includes(req.body.priority) ? req.body.priority : 'medium';
+        let deadlineRaw = req.body.deadline;
+        let deadline = (deadlineRaw && /^\d{4}-\d{2}-\d{2}$/.test(deadlineRaw)) ? deadlineRaw : null;
 
         if (taskId === ''){
             await db.knex('tasks').insert({
                 title: title,
                 state: state,
                 priority: priority,
+                deadline: deadline,
                 userID: userId
             });
         } else {
@@ -37,7 +40,8 @@ async function getHtml(req) {
                 .update({
                     title: title,
                     state: state,
-                    priority: priority
+                    priority: priority,
+                    deadline: deadline
                 });
         }
 

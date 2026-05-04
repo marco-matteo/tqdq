@@ -162,3 +162,11 @@ div.success{
     margin: 10px 0;
     border-left: 4px solid #5cb85c;
 }
+
+tr.overdue td {
+    background-color: #fde8e8;
+    color: #c0392b;
+}
+tr.overdue td a {
+    color: #922b21;
+}
