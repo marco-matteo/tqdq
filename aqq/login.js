@@ -104,25 +104,26 @@ async function validateLogin (username, password) {
 
 function getHtml(csrfToken) {
     return `
-    <h2>Login</h2>
+    <div class="card card-center">
+        <h2>Welcome back</h2>
+        <p style="margin:-12px 0 20px 0;">Sign in to your account</p>
 
-    <form id="form" method="post" action="/login">
-        <input type="hidden" name="_csrf" value="${csrfToken}">
-        <div class="form-group">
-            <label for="username">Username</label>
-            <input type="text" class="form-control size-medium" name="username" id="username">
-        </div>
-        <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" class="form-control size-medium" name="password" id="password">
-        </div>
-        <div class="form-group">
-            <label for="submit" ></label>
-            <input id="submit" type="submit" class="btn size-auto" value="Login" />
-        </div>
-    </form>
-    <br />
-    <p style="margin: 20px;">Don't have an account? <a href="/register">Register here</a></p>
+        <form id="form" method="post" action="/login">
+            <input type="hidden" name="_csrf" value="${csrfToken}">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" class="form-control size-medium" name="username" id="username" autocomplete="username">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" class="form-control size-medium" name="password" id="password" autocomplete="current-password">
+            </div>
+            <div class="form-group">
+                <input id="submit" type="submit" class="btn" value="Sign In" />
+            </div>
+        </form>
+        <p style="margin-top:20px;text-align:center;">Don't have an account? <a href="/register">Register here</a></p>
+    </div>
     `;
 }
 

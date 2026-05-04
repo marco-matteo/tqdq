@@ -45,9 +45,21 @@ async function getHtml(req) {
                 });
         }
 
-        html += "<span class='info info-success'>Update successful</span>";
+        html += `<div style="text-align:center;padding:40px 20px;">
+            <div class="success" style="display:inline-block;padding:14px 28px;border-radius:8px;margin-bottom:24px;">
+                Task saved successfully.
+            </div>
+            <br>
+            <a href="/" class="create-btn" style="margin-top:8px;">&#8592; Back to Tasks</a>
+        </div>`;
     } else {
-        html += "<span class='info info-error'>No update was made</span>";
+        html += `<div style="text-align:center;padding:40px 20px;">
+            <div class="error" style="display:inline-block;padding:14px 28px;border-radius:8px;margin-bottom:24px;">
+                No update was made.
+            </div>
+            <br>
+            <a href="/" class="create-btn" style="margin-top:8px;">&#8592; Back to Tasks</a>
+        </div>`;
     }
 
     return html;

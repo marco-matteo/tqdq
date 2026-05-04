@@ -13,15 +13,20 @@ async function getHtml() {
     html += `
     <h2>User List</h2>
 
-    <table>
+    <table style="max-width:640px;">
         <tr>
-            <th>ID</th>
+            <th style="width:60px;">ID</th>
             <th>Username</th>
             <th>Role</th>
         </tr>`;
 
     result.map(function (record) {
-        html += `<tr><td>`+record.ID+`</td><td>`+security.escapeHTML(record.username)+`</td><td>`+security.escapeHTML(record.title)+`</td></tr>`;
+        const roleClass = record.title === 'Admin' ? 'state-open' : 'priority-low';
+        html += `<tr>
+            <td style="color:var(--text-muted);font-size:13px;">#${record.ID}</td>
+            <td>${security.escapeHTML(record.username)}</td>
+            <td><span class="badge ${roleClass}">${security.escapeHTML(record.title)}</span></td>
+        </tr>`;
     });
 
     html += `

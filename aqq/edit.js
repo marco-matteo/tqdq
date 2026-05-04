@@ -31,9 +31,9 @@ async function getHtml(req, res) {
             return "Task not found or you don't have permission to edit it.";
         }
 
-        html += `<h1>Edit Task</h1>`;
+        html += `<div class="card" style="max-width:560px;"><h1>Edit Task</h1>`;
     } else {
-        html += `<h1>Create Task</h1>`;
+        html += `<div class="card" style="max-width:560px;"><h1>Create Task</h1>`;
     }
 
     html += `
@@ -72,11 +72,12 @@ async function getHtml(req, res) {
             <label for="deadline">Deadline</label>
             <input type="date" class="form-control size-auto" name="deadline" id="deadline" value="`+security.escapeHTML(deadline)+`">
         </div>
-        <div class="form-group">
-            <label for="submit" ></label>
-            <input id="submit" type="submit" class="btn size-auto" value="Submit" />
+        <div class="form-group" style="display:flex;gap:12px;align-items:center;margin-top:8px;">
+            <input id="submit" type="submit" class="btn" value="Save Task" />
+            <a href="/" style="font-size:14px;font-weight:500;color:var(--text-secondary);text-decoration:none;padding:0 4px;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-secondary)'">&#8592; Back to Tasks</a>
         </div>
     </form>
+    </div>
     <script>
         $(document).ready(function () {
         $('#form').validate({
