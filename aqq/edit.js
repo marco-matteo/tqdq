@@ -5,6 +5,7 @@ async function getHtml(req, res) {
     let title = '';
     let state = '';
     let priority = 'medium';
+    let deadline = '';
     let taskId = '';
     let html = '';
     let options = ["Open", "In Progress", "Done"];
@@ -19,11 +20,12 @@ async function getHtml(req, res) {
         let result = await db.knex('tasks')
             .where('ID', taskId)
             .where('userID', req.session.userId)
-            .select('ID', 'title', 'state', 'priority');
+            .select('ID', 'title', 'state', 'priority', 'deadline');
         if(result.length > 0) {
             title = result[0].title;
             state = result[0].state;
             priority = result[0].priority || 'medium';
+            deadline = result[0].deadline ? result[0].deadline.toISOString().split('T')[0] : '';
         } else {
             // Task not found or not belonging to the user
             return "Task not found or you don't have permission to edit it.";
@@ -65,6 +67,10 @@ async function getHtml(req, res) {
 
     html += `
             </select>
+        </div>
+        <div class="form-group">
+            <label for="deadline">Deadline</label>
+            <input type="date" class="form-control size-auto" name="deadline" id="deadline" value="`+security.escapeHTML(deadline)+`">
         </div>
         <div class="form-group">
             <label for="submit" ></label>
