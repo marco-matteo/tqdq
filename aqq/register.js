@@ -75,28 +75,30 @@ async function registerUser(username, password, passwordConfirm) {
 
 function getHtml(csrfToken) {
     return `
-    <h2>Register</h2>
+    <div class="card card-center">
+        <h2>Create an account</h2>
+        <p style="margin:-12px 0 20px 0;">Fill in the details below to register</p>
 
-    <form id="form" method="post" action="/register">
-        <input type="hidden" name="_csrf" value="${csrfToken}">
-        <div class="form-group">
-            <label for="username">Username</label>
-            <input type="text" class="form-control size-medium" name="username" id="username" minlength="3" maxlength="50" required>
-        </div>
-        <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" class="form-control size-medium" name="password" id="password" minlength="12" required>
-        </div>
-        <div class="form-group">
-            <label for="password_confirm">Confirm Password</label>
-            <input type="password" class="form-control size-medium" name="password_confirm" id="password_confirm" minlength="12" required>
-        </div>
-        <div class="form-group">
-            <label for="submit"></label>
-            <input id="submit" type="submit" class="btn size-auto" value="Register" />
-        </div>
-    </form>
-    <p>Already have an account? <a href="/login">Login here</a></p>
+        <form id="form" method="post" action="/register">
+            <input type="hidden" name="_csrf" value="${csrfToken}">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" class="form-control size-medium" name="username" id="username" minlength="3" maxlength="50" required autocomplete="username">
+            </div>
+            <div class="form-group">
+                <label for="password">Password <span style="font-weight:400;color:var(--text-muted);">(min. 12 characters)</span></label>
+                <input type="password" class="form-control size-medium" name="password" id="password" minlength="12" required autocomplete="new-password">
+            </div>
+            <div class="form-group">
+                <label for="password_confirm">Confirm Password</label>
+                <input type="password" class="form-control size-medium" name="password_confirm" id="password_confirm" minlength="12" required autocomplete="new-password">
+            </div>
+            <div class="form-group">
+                <input id="submit" type="submit" class="btn" value="Create Account" />
+            </div>
+        </form>
+        <p style="margin-top:20px;text-align:center;">Already have an account? <a href="/login">Sign in here</a></p>
+    </div>
     `;
 }
 

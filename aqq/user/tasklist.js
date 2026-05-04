@@ -56,16 +56,19 @@ async function getHtml(req) {
 
     let html = `
     <section id="list">
-        <a href="edit">Create Task</a>
+        <div class="section-header">
+            <h2>My Tasks</h2>
+            <a href="edit" class="create-btn">New Task</a>
+        </div>
 
         <form method="get" action="/" id="filter-form">
-            <div class="form-group" style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap; margin:0.75rem 0;">
+            <div class="filter-bar">
                 ${select('filter_state', stateOptions, filterState)}
                 ${select('filter_priority', priorityOptions, filterPriority)}
-                <label style="margin-left:0.5rem;">Sort by:</label>
+                <label>Sort by:</label>
                 ${select('sort', sortOptions, sortCol)}
                 ${select('order', [{ value: 'asc', label: 'Asc' }, { value: 'desc', label: 'Desc' }], sortOrder)}
-                <a href="/" style="margin-left:0.5rem;">Reset</a>
+                <a href="/" class="reset-link">Reset</a>
             </div>
         </form>
 
@@ -97,15 +100,20 @@ async function getHtml(req) {
                     rowClass = ' class="overdue"';
                 }
             }
+            const stateClass = 'state-' + row.state.replace(' ', '-');
+            const priorityVal = row.priority || 'medium';
             html += `
             <tr${rowClass}>
-                <td>${row.ID}</td>
+                <td style="color:var(--text-muted);font-size:13px;">#${row.ID}</td>
                 <td class="wide">${security.escapeHTML(row.title)}</td>
-                <td>${security.escapeHTML(ucfirst(row.state))}</td>
-                <td>${security.escapeHTML(ucfirst(row.priority || 'medium'))}</td>
-                <td>${security.escapeHTML(deadlineDisplay)}</td>
+                <td><span class="badge ${stateClass}">${security.escapeHTML(ucfirst(row.state))}</span></td>
+                <td><span class="badge priority-${priorityVal}">${security.escapeHTML(ucfirst(priorityVal))}</span></td>
+                <td style="font-size:13px;color:var(--text-secondary);">${security.escapeHTML(deadlineDisplay)}</td>
                 <td>
-                    <a href="edit?id=${row.ID}">edit</a> | <a href="delete?id=${row.ID}">delete</a>
+                    <div class="action-links">
+                        <a href="edit?id=${row.ID}">Edit</a>
+                        <a href="delete?id=${row.ID}" class="delete-link">Delete</a>
+                    </div>
                 </td>
             </tr>`;
         });

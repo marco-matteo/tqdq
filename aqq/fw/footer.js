@@ -1,7 +1,7 @@
 function getHtml() {
     return `</main>
 <footer>
-    &copy;TBZ
+    &copy; 2025 TBZ &mdash; M183 Task Manager
 </footer>
 
 </body>
